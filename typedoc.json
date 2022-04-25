@@ -1,10 +1,6 @@
 {
   "entryPoints": [
-    "src/Pe102/abstrac_class/reduce.ts",
-    "src/Pe102/subclass/add_reduce.ts",
-    "src/Pe102/subclass/sub_reduce.ts",
-    "src/Pe102/subclass/prod_reduce.ts",
-    "src/Pe102/subclass/div_reduce.ts"
+    "src/PE102/"
   ],
   "out": "./docs"
 }
