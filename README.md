@@ -245,3 +245,83 @@ function withoutPipe(path: string, word: string) {
 }
 ```
   
+## Ejercicio 3: 
+  
+Para el desarrollo de este ejercicio, hemos usado las herramientas de `yargs`, `child_process` y `fs`. 
+  
+Se creó el comando `watch`, que recibe como parametros `user`, string que recibe el usuario de las notas, y `path`, string con la ruta del directorio del usuario a observar. Para la creacion, al igual que en el ejercicio anterior, se usó la creacon de comandos con yargs. En este caso, no se creó ninguna funcion auxiliar, si no que se trabajó directamente en el `handler`del comando creado.  
+  
+Se usó la función `readdir()` que es asíncrona, especificandole la ruta ingresada por linea de comandos, para obtener el tamaño de la carpeta, en cado de que el `callback` diera error, se muestra por pantalla que el directorio no se ha podido leer correctamente.  
+  
+Tras ello, haciendo usao de la funcion `access`, comprobamos si el usuario tiene los permisos necesarios para abrir la carpeta, en caso contrario, al igual que antes, se mostrará un mensaje de error. En caso afirmativo, se hará usao de la función `watch` para observar los cambior que pueda tener el directorio, ya sea adición de un nuevo fichero, modificacion o eliminacion de uno existente.  
+  
+Como por el camino, se ha obtenido el tamaño de la carpeta, el código puede deducir, si se ha añadido un nuevo fichero, pero tambien, se puede obtener por los eventos, si se han realizado las otrras operaciones antes mencionadas.  
+  
+Finalmente, a función asíncrona `setTimeout` la usamos para que no se muestren mensajes duplicados.  
+  
+```typescript
+yargs.command({
+  command: 'watch',
+  describe: 'Observa el directorio de un usuario especifico, para ver si existen cambios',
+  builder: {
+    user: {
+      describe: 'Usuario',
+      demandOption: true,
+      type: 'string',
+    },
+    path: {
+      describe: 'Ruta del directorio del usuario a observar',
+      demandOption: true,
+      type: 'string',
+    },
+  },
+  handler(argv) {
+    if(typeof argv.user === 'string' && typeof argv.path === 'string') {
+      let aux_user: string = argv.user, aux_path: string = argv.path;
+      let curr: number = 0, pre: number = 0;
+
+      fs.readdir(aux_path, (err, files) => {
+        if(err) console.log(chalk.red.inverse('ERROR: No se puedo leer el directorio'));
+        else pre = files.length;
+      });
+
+      fs.access(aux_path, fs.constants.F_OK, (err) => {
+        let wait: boolean = false;
+        if(err) console.log(chalk.red.inverse(`ERROR: ${aux_user} no puede acceder al directorio`));
+        else {
+          fs.watch(aux_path, (eventType, f_name) => {
+            if(wait) return;
+            else {
+              wait = true;
+              fs.readdir(aux_path, (err, files) => {
+                if(err) console.log(chalk.red.inverse('ERROR: No se puedo leer el directorio'));
+                else {
+                  curr = files.length;
+                  if(eventType === 'rename') console.log(`La nota ${f_name} fue eliminada`);             
+                  else if(eventType === 'change') console.log(`La nota ${f_name} fue modificada`);
+                  else if(pre < curr) {
+                    console.log(chalk.green.inverse(`La nota ${f_name} fue agregada en el directorio`));
+                    pre = curr;
+                  }
+                }
+                setTimeout(() => {
+                  wait = false;
+                }, 100);
+              });
+            }
+          });
+        }
+      });
+    } else {
+      console.log(chalk.red.inverse('ERROR: Argumentos no válidos'));
+    }
+  },
+});
+
+yargs.parse();
+```
+  
+## Ejercicio 4: 
+  
+No se pudo realizar.  
+  
